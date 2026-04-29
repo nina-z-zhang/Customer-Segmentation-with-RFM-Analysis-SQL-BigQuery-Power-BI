@@ -8,6 +8,7 @@
 
 ## Project Objective
 
+For this project, I focused on customer analytics and segmentation using SQL and BI tools.
 This project applies **RFM (Recency, Frequency, Monetary) analysis** to a full year of transactional sales data for a direct-to-consumer e-commerce brand. Using Google BigQuery for data engineering and Power BI for visualization, I built an end-to-end customer segmentation pipeline — from raw monthly tables to a BI-ready dashboard — that classifies 287 customers into 8 behavioural segments. The goal: give marketing and product teams a data-backed foundation for targeted campaigns, retention strategies, and revenue prioritization.
 
 ---
@@ -167,11 +168,12 @@ ORDER BY rfm_total_score DESC;
 
 ## Dashboard
 
-> *Power BI dashboard screenshot — RFM Analysis Dashboard*
+> *Power BI — RFM Analysis Dashboard*
 
-![RFM Analysis Dashboard](./dashboard_screenshot.png)
+<img width="1600" height="908" alt="dashboard_screenshot" src="https://github.com/user-attachments/assets/c2429d4d-5837-4394-8e96-0632db921ae0" />
 
-*Built in Power BI Desktop. Data source: BigQuery export (`rfm_segments_final` table). Includes: segment distribution bar chart, full customer detail table with RFM scores, and segment KPI summary.*
+
+*Data from BigQuery export (`rfm_segments_final` table). Visualizes: segment distribution bar chart, full customer detail table with RFM scores, and segment KPI summary.*
 
 ---
 
@@ -212,21 +214,4 @@ The combined Promising + Potential Loyalists segment totals **86 customers (30%)
 - **Convert the middle (Engaged + Promising):** Highest volume, highest conversion potential.
 - **Recover the at-risk (At Risk + Requires Attention):** 26.8% of base — act before they become Lost/Inactive.
 
----
-
-## Repository Structure
-
-```
-rfm-customer-segmentation/
- ┣ README.md
- ┣ all_steps.sql              ← Full BigQuery SQL pipeline (5 steps)
- ┣ rfm_segments_final.csv     ← Final segmentation output (287 customers)
- ┗ dashboard_screenshot.png   ← Power BI dashboard screenshot
-```
-
-> **Note on Power BI file:** The `.pbix` file is not included in this repository as it contains the raw dataset. The dashboard is documented via screenshot above.**
-
----
-
-*This is the second project in my data analyst portfolio, focusing on customer analytics and segmentation using SQL and business intelligence tools.*
 
