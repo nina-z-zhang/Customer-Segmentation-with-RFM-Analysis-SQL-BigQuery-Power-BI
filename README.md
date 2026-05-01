@@ -9,13 +9,14 @@
 ## Project Objective
 
 For this project, I focused on customer analytics and segmentation using SQL and BI tools.
-This project applies **RFM (Recency, Frequency, Monetary) analysis** to a full year of transactional sales data for a direct-to-consumer e-commerce brand. Using Google BigQuery for data engineering and Power BI for visualization, I built an end-to-end customer segmentation pipeline — from raw monthly tables to a BI-ready dashboard — that classifies 287 customers into 8 behavioural segments. The goal: give marketing and product teams a data-backed foundation for targeted campaigns, retention strategies, and revenue prioritization.
+This project applies **RFM (Recency, Frequency, Monetary) analysis** to a full year of transactional sales data for a direct-to-consumer e-commerce brand. Using Google BigQuery for data engineering and Power BI for visualization, I built a customer segmentation pipeline from raw monthly tables to an interactive dashboard, which classifies 287 customers into 8 behavioural segments. 
+The goal: give marketing and product teams a data-backed foundation for targeted campaigns, retention strategies, and revenue prioritization.
 
 ---
 
 ## What is RFM Analysis?
 
-RFM is a proven customer analytics framework used by marketing and product teams to score customers based on three dimensions of their purchase behaviour:
+RFM is a proven customer analytics framework to score customers based on three dimensions of their purchase behaviour:
 
 | Dimension | Question it answers | Why it matters |
 |---|---|---|
@@ -27,9 +28,9 @@ Each customer receives a score from 1–10 on each dimension (using **decile sco
 
 ### Why I chose RFM for this project
 
-A mid-sized e-commerce brand typically generates thousands of transactions per year but rarely has the segmentation infrastructure to act on that data. Blanket email campaigns and identical discount offers go out to every customer on the list — a costly approach that erodes margins and ignores the fundamentally different value of a repeat VIP buyer vs. a customer who last purchased 300+ days ago.
+A mid-sized e-commerce brand typically generates thousands of transactions per year but rarely has the segmentation infrastructure to act on that data. Blanket email campaigns and identical discount offers go out to every customer on the list — a costly approach that erodes margins and ignores the different value of a repeat VIP buyer vs. a customer who last purchased a year ago.
 
-RFM is the industry-standard starting point because it requires only three fields available in virtually any transactional dataset (customer ID, order date, order value), it is interpretable by non-technical stakeholders, and it maps directly to marketing actions. By building this in SQL on BigQuery, the pipeline can scale to millions of rows and be refreshed on any cadence.
+RFM is the industry-standard starting point because it requires only three fields available in virtually any transactional dataset (customer ID, order date, order value), it is interpretable by non-technical stakeholders, and it maps directly to marketing actions.
 
 ---
 
@@ -38,17 +39,8 @@ RFM is the industry-standard starting point because it requires only three field
 1. **Who are our highest-value customers**, and what share of the customer base do Champions and Loyal VIPs represent?
 2. **Where is the biggest volume opportunity?** Which mid-tier segment has the most customers that could be moved up the loyalty ladder with the right campaign?
 3. **How large is our churn exposure?** What percentage of customers are At Risk, Require Attention, or are already Lost/Inactive?
-4. **Is there a retention priority?** Should we focus resources on reactivating dormant customers or on defending the high-value base we already have?
-5. **What does the full segmentation funnel look like?** How are customers distributed across all 8 RFM segments, and does the distribution reveal any structural gaps in our customer lifecycle?
-
----
-
-## Tools & Tech Stack
-
-- **Google BigQuery** — cloud data warehouse for SQL development and pipeline execution
-- **Standard SQL (BigQuery dialect)** — data transformation, scoring, and segmentation
-- **Power BI Desktop** — interactive dashboard and business reporting
-- **CSV export** — final segment table exported from BigQuery for Power BI connection
+4. **Is there a retention priority?** Should we focus resources on reactivating dormant customers or on defending the high-value ones we already have?
+5. **What does the full segmentation funnel look like?** How are customers distributed across all 8 RFM segments?
 
 ---
 
@@ -104,9 +96,9 @@ FROM rfm;
 
 **Advanced functions used:**
 
-- **CTEs (`WITH` clauses):** Two chained CTEs keep the logic modular — `current_date` isolates the analysis anchor date so it's easy to update, and `rfm` computes the raw metrics before ranking. Chaining CTEs avoids subquery nesting and makes the intent of each step readable.
-- **`DATE_DIFF()`:** Calculates exact day-level recency from the fixed analysis date to each customer's last order — more precise than a simple date subtraction.
-- **`ROW_NUMBER() OVER()`:** A window function that assigns a unique rank to every customer within the full dataset, ordered by each RFM dimension. Unlike `RANK()`, it produces no ties, which is required before feeding into decile scoring.
+- **CTEs (`WITH` clauses):** Two chained CTEs keep the logic modular — `current_date` isolates the anchor date for our analysis so it's easy to update, and `rfm` computes the raw metrics before ranking. 
+- **`DATE_DIFF()`:** Calculates exact day-level recency from the fixed analysis date (can be updated throughout the year) to each customer's last order.
+- **`ROW_NUMBER() OVER()`:** A window function that assigns a unique rank to every customer within the full dataset, ordered by each RFM dimension.
 
 ---
 
@@ -121,7 +113,7 @@ SELECT *,
 FROM `rfmana.sales.rfm_metrics`;
 ```
 
-**`NTILE(10)`** is a window function that divides the ranked customer list into 10 equal buckets (deciles), assigning scores 1–10. Score 10 = top 10% of customers on that dimension. Using deciles rather than fixed thresholds makes the scoring relative and robust to any dataset size — it automatically recalibrates when new customers are added.
+**`NTILE(10)`** is a window function that divides the ranked customer list into 10 equal deciles, assigning scores 1–10. Score 10 = top 10% of customers on that dimension. I used deciles rather than fixed thresholds to make the scoring relative and applicable to any dataset size, as it automatically adjusts when new customers are added.
 
 ---
 
@@ -137,7 +129,7 @@ FROM `rfmana.sales.rfm_scores`
 ORDER BY rfm_total_score DESC;
 ```
 
-Simple additive scoring gives each customer a total out of 30. This view feeds directly into the final segmentation step.
+Simply adding the respective scores of each dimension gives each customer a total out of 30. This view is directly needed for the final segmentation step.
 
 ---
 
@@ -160,9 +152,7 @@ FROM `rfmana.sales.rfm_total_score`
 ORDER BY rfm_total_score DESC;
 ```
 
-`CASE WHEN` translates the numeric score into human-readable, actionable labels. This step is saved as a **TABLE** (not a view) because it is the final BI-ready output exported to Power BI — materializing it avoids repeated computation on every dashboard refresh.
-
-> **Design note:** The pipeline deliberately mixes VIEWs and TABLEs. Intermediate steps (Steps 2–4) are views — they stay lightweight and always reflect the latest data. Only the final output (Step 5) is materialized as a table, since it is consumed by an external BI tool.
+`CASE WHEN` translates the numeric score into easy to understand labels. This step is saved as a **TABLE** (not a view) because it is the final BI-ready output exported to Power BI.
 
 ---
 
@@ -183,10 +173,10 @@ ORDER BY rfm_total_score DESC;
 Champions and Loyal VIPs together account for only **63 customers (22% of the base)**, yet they represent the customers with the highest recency, frequency, and spend scores. For a DTC brand, this cohort likely drives a disproportionate share of revenue. Protecting and nurturing this segment — through early access, loyalty rewards, or dedicated account treatment — should be the highest-priority retention activity.
 
 ### 2. Engaged is the largest segment and the biggest upgrade opportunity
-With **61 customers (21.3%)**, the Engaged segment is the most populated. These are customers who buy regularly enough to score well on frequency but haven't crossed the threshold into Promising or Loyal VIP territory. They are the most actionable mid-funnel group: a targeted upsell campaign, a product recommendation engine, or a loyalty programme nudge could move a meaningful share into higher-value segments.
+With **61 customers (21.3%)**, the Engaged segment is the most populated. These are customers who buy regularly enough to score well on frequency but haven't crossed the level to Promising or Loyal VIP. They are the most actionable mid-funnel group: a targeted upsell campaign, a product recommendation engine, or a loyalty programme nudge could move a meaningful share into higher-value segments.
 
 ### 3. Over a quarter of customers carry churn risk
-**At Risk (38) + Requires Attention (32) + Lost/Inactive (7) = 77 customers, or 26.8% of the base.** This is a significant and addressable churn exposure. At Risk customers in particular — who have purchased before but whose recency and/or frequency scores are declining — are still reachable with a well-timed win-back offer, whereas Lost/Inactive customers (7) may not justify the marketing spend for reactivation.
+**At Risk (38) + Requires Attention (32) + Lost/Inactive (7) = 77 customers, or 26.8% of the base.** This is a significant and addressable churn exposure. At Risk customers in particular (who have purchased before but whose recency and/or frequency scores are declining) are still reachable with a well-timed win-back offer, whereas Lost/Inactive customers may not justify the marketing spend for reactivation.
 
 ### 4. Lost/Inactive customers are minimal — but worth profiling
 Only **7 customers (2.4%)** have fully lapsed. This is relatively healthy for a one-year dataset and suggests most disengaged customers fall into the *At Risk* or *Requires Attention* window, where recovery is still viable. The business should profile these 7 to check whether their lapse correlates with a specific product category, acquisition channel, or seasonal cohort.
@@ -195,19 +185,6 @@ Only **7 customers (2.4%)** have fully lapsed. This is relatively healthy for a 
 The combined Promising + Potential Loyalists segment totals **86 customers (30%)**, representing a strong mid-tier pipeline. If the business can convert even 20–30% of this group upward over the next 6 months, it meaningfully grows the Champions and Loyal VIP base without needing to acquire new customers.
 
 ---
-
-## Findings & Recommendations
-
-| Segment | Count | Recommended Action |
-|---|---|---|
-| **Champions** | 22 | Reward loyalty — VIP early access, referral programme, exclusive offers |
-| **Loyal VIPs** | 41 | Retain with personalized outreach; protect against competitive switching |
-| **Potential Loyalists** | 41 | Push to VIP tier — targeted cross-sell, loyalty point accelerator |
-| **Promising** | 45 | Encourage second/third purchase — onboarding-style nurture sequence |
-| **Engaged** | 61 | Upsell opportunity — product recommendations, bundle offers |
-| **Requires Attention** | 32 | Re-engagement email sequence with time-sensitive incentive |
-| **At Risk** | 38 | Win-back campaign — personalized discount, "we miss you" messaging |
-| **Lost/Inactive** | 7 | Profile for root cause; low-cost reactivation attempt only if CAC-justified |
 
 **Strategic priority summary:**
 - **Defend the top (Champions + VIPs):** High-cost to replace, high-revenue impact.
