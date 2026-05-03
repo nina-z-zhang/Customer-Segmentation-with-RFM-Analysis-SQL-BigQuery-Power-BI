@@ -1,9 +1,5 @@
 # Customer Segmentation with RFM Analysis | SQL (BigQuery) + Power BI
 
-![Power BI](https://img.shields.io/badge/Power%20BI-F2C811?style=flat&logo=powerbi&logoColor=black)
-![BigQuery](https://img.shields.io/badge/BigQuery-4285F4?style=flat&logo=google-cloud&logoColor=white)
-![SQL](https://img.shields.io/badge/SQL-336791?style=flat&logo=postgresql&logoColor=white)
-
 ---
 
 ## Project Objective
